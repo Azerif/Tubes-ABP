@@ -1,0 +1,1060 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Laravel API Documentation",
+        "description": "Dokumentasi API untuk autentikasi pengguna",
+        "contact": {
+            "email": "support@example.com"
+        },
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": ""
+        }
+    ],
+    "paths": {
+        "/api/register": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Register User",
+                "description": "Mendaftarkan pengguna baru",
+                "operationId": "8a56853624e025573120a09a4c75d468",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "email",
+                                    "password"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "John Doe"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "john@example.com"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "password123"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "User registered successfully"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            }
+        },
+        "/api/login": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Login User",
+                "description": "Melakukan autentikasi pengguna",
+                "operationId": "a3b306d14572d1f4bd6c064b3233e7b8",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "email",
+                                    "password"
+                                ],
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "john@example.com"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "password123"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Login successful"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    }
+                }
+            }
+        },
+        "/api/logout": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Logout User",
+                "description": "Menghapus token autentikasi pengguna",
+                "operationId": "fe8f3429cd6979b3b4517e186505f9f9",
+                "responses": {
+                    "200": {
+                        "description": "Logged out successfully"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/calories": {
+            "get": {
+                "tags": [
+                    "Calories"
+                ],
+                "summary": "Menampilkan daftar catatan kalori pengguna",
+                "operationId": "0c421716270475fa863b12aef1949cc8",
+                "responses": {
+                    "200": {
+                        "description": "Daftar catatan kalori berhasil diambil",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer",
+                                                "example": 1
+                                            },
+                                            "type": {
+                                                "type": "string",
+                                                "enum": [
+                                                    "food",
+                                                    "activity"
+                                                ],
+                                                "example": "food"
+                                            },
+                                            "description": {
+                                                "type": "string",
+                                                "example": "Ayam bakar"
+                                            },
+                                            "calories": {
+                                                "type": "integer",
+                                                "example": 250
+                                            },
+                                            "user_id": {
+                                                "type": "integer",
+                                                "example": 5
+                                            }
+                                        },
+                                        "type": "object"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Calories"
+                ],
+                "summary": "Menambahkan catatan kalori baru",
+                "operationId": "eed2100cc3197cc5a78173aa41dc867b",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "type",
+                                    "description",
+                                    "calories"
+                                ],
+                                "properties": {
+                                    "type": {
+                                        "type": "string",
+                                        "enum": [
+                                            "food",
+                                            "activity"
+                                        ],
+                                        "example": "food"
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "example": "Ayam bakar"
+                                    },
+                                    "calories": {
+                                        "type": "integer",
+                                        "example": 250
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Catatan kalori berhasil dibuat",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "id": {
+                                            "type": "integer",
+                                            "example": 1
+                                        },
+                                        "user_id": {
+                                            "type": "integer",
+                                            "example": 5
+                                        },
+                                        "type": {
+                                            "type": "string",
+                                            "example": "food"
+                                        },
+                                        "description": {
+                                            "type": "string",
+                                            "example": "Ayam bakar"
+                                        },
+                                        "calories": {
+                                            "type": "integer",
+                                            "example": 250
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validasi gagal"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/calories/{id}": {
+            "put": {
+                "tags": [
+                    "Calories"
+                ],
+                "summary": "Memperbarui catatan kalori berdasarkan ID",
+                "operationId": "6ce5ddb355e6726d69e4362be0c9724f",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "type": {
+                                        "type": "string",
+                                        "enum": [
+                                            "food",
+                                            "activity"
+                                        ],
+                                        "example": "food"
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "example": "Ayam bakar"
+                                    },
+                                    "calories": {
+                                        "type": "integer",
+                                        "example": 250
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Catatan kalori berhasil diperbarui",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "id": {
+                                            "type": "integer",
+                                            "example": 1
+                                        },
+                                        "user_id": {
+                                            "type": "integer",
+                                            "example": 5
+                                        },
+                                        "type": {
+                                            "type": "string",
+                                            "example": "food"
+                                        },
+                                        "description": {
+                                            "type": "string",
+                                            "example": "Ayam bakar"
+                                        },
+                                        "calories": {
+                                            "type": "integer",
+                                            "example": 250
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Catatan kalori tidak ditemukan"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Calories"
+                ],
+                "summary": "Menghapus catatan kalori berdasarkan ID",
+                "operationId": "231c3daa9c8b9f3b80a153a736f7f9ba",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Catatan kalori berhasil dihapus",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Calorie log deleted successfully"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Catatan kalori tidak ditemukan"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/fasting-schedules": {
+            "get": {
+                "tags": [
+                    "FastingSchedule"
+                ],
+                "summary": "Menampilkan daftar jadwal puasa pengguna",
+                "operationId": "90ee3f6fb7b5b6167bb7f74a225e0ee6",
+                "responses": {
+                    "200": {
+                        "description": "Daftar jadwal puasa berhasil diambil",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer",
+                                                "example": 1
+                                            },
+                                            "date": {
+                                                "type": "string",
+                                                "format": "date",
+                                                "example": "2025-03-21"
+                                            },
+                                            "start_time": {
+                                                "type": "string",
+                                                "format": "time",
+                                                "example": "04:30"
+                                            },
+                                            "end_time": {
+                                                "type": "string",
+                                                "format": "time",
+                                                "example": "18:30"
+                                            },
+                                            "completed": {
+                                                "type": "boolean",
+                                                "example": false
+                                            }
+                                        },
+                                        "type": "object"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "FastingSchedule"
+                ],
+                "summary": "Menambahkan jadwal puasa baru",
+                "operationId": "31c907ba8df075a14c83c364a836bde4",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "date",
+                                    "start_time",
+                                    "end_time"
+                                ],
+                                "properties": {
+                                    "date": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2025-03-21"
+                                    },
+                                    "start_time": {
+                                        "type": "string",
+                                        "format": "time",
+                                        "example": "04:30"
+                                    },
+                                    "end_time": {
+                                        "type": "string",
+                                        "format": "time",
+                                        "example": "18:30"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Jadwal puasa berhasil dibuat",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "id": {
+                                            "type": "integer",
+                                            "example": 1
+                                        },
+                                        "user_id": {
+                                            "type": "integer",
+                                            "example": 5
+                                        },
+                                        "date": {
+                                            "type": "string",
+                                            "format": "date",
+                                            "example": "2025-03-21"
+                                        },
+                                        "start_time": {
+                                            "type": "string",
+                                            "format": "time",
+                                            "example": "04:30"
+                                        },
+                                        "end_time": {
+                                            "type": "string",
+                                            "format": "time",
+                                            "example": "18:30"
+                                        },
+                                        "completed": {
+                                            "type": "boolean",
+                                            "example": false
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validasi gagal"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/fasting-schedules/{id}/complete": {
+            "put": {
+                "tags": [
+                    "FastingSchedule"
+                ],
+                "summary": "Menandai jadwal puasa sebagai selesai",
+                "operationId": "f7e19536344f75357bcfa226af31c05d",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID jadwal puasa",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Jadwal puasa berhasil diperbarui",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Fasting marked as completed"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Jadwal puasa tidak ditemukan"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/leaderboard": {
+            "get": {
+                "tags": [
+                    "Leaderboard"
+                ],
+                "summary": "Menampilkan papan peringkat pengguna berdasarkan jumlah puasa yang telah diselesaikan",
+                "operationId": "e2e02bc8d73f7e1a8dfceb1c40e0f3bd",
+                "responses": {
+                    "200": {
+                        "description": "Data leaderboard berhasil diambil",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer",
+                                                "example": 1
+                                            },
+                                            "name": {
+                                                "type": "string",
+                                                "example": "John Doe"
+                                            },
+                                            "email": {
+                                                "type": "string",
+                                                "example": "johndoe@example.com"
+                                            },
+                                            "fasting_schedules_count": {
+                                                "type": "integer",
+                                                "example": 10
+                                            }
+                                        },
+                                        "type": "object"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/notifications": {
+            "get": {
+                "tags": [
+                    "Notifications"
+                ],
+                "summary": "Menampilkan daftar notifikasi pengguna",
+                "operationId": "911565ad9aff9ba7eded3f189509e578",
+                "responses": {
+                    "200": {
+                        "description": "Daftar notifikasi berhasil diambil",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer",
+                                                "example": 1
+                                            },
+                                            "user_id": {
+                                                "type": "integer",
+                                                "example": 5
+                                            },
+                                            "message": {
+                                                "type": "string",
+                                                "example": "Your fasting session has ended"
+                                            },
+                                            "created_at": {
+                                                "type": "string",
+                                                "format": "date-time",
+                                                "example": "2024-03-21T14:55:00Z"
+                                            }
+                                        },
+                                        "type": "object"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Notifications"
+                ],
+                "summary": "Membuat notifikasi baru",
+                "operationId": "91f8e779a9e46cb5cdda969e5a928a94",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "message"
+                                ],
+                                "properties": {
+                                    "message": {
+                                        "type": "string",
+                                        "example": "Your fasting schedule is set!"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Notifikasi berhasil dibuat",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "id": {
+                                            "type": "integer",
+                                            "example": 1
+                                        },
+                                        "user_id": {
+                                            "type": "integer",
+                                            "example": 5
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Your fasting schedule is set!"
+                                        },
+                                        "created_at": {
+                                            "type": "string",
+                                            "format": "date-time",
+                                            "example": "2024-03-21T14:55:00Z"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/notifications/{id}": {
+            "delete": {
+                "tags": [
+                    "Notifications"
+                ],
+                "summary": "Menghapus notifikasi berdasarkan ID",
+                "operationId": "54c4eb5ec5dc0d1e2916cec2fced1056",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID notifikasi yang akan dihapus",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Notifikasi berhasil dihapus",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Deleted"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Notifikasi tidak ditemukan",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Not Found"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/reports": {
+            "get": {
+                "tags": [
+                    "Reports"
+                ],
+                "summary": "Menampilkan laporan pengguna",
+                "operationId": "42398321972bc3074eef76718e0fd9dc",
+                "responses": {
+                    "200": {
+                        "description": "Laporan berhasil diambil",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "weight": {
+                                            "type": "integer",
+                                            "example": 70
+                                        },
+                                        "target_weight": {
+                                            "type": "integer",
+                                            "example": 65
+                                        },
+                                        "daily_calories": {
+                                            "type": "integer",
+                                            "example": 1800
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Profil pengguna tidak ditemukan",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Profile not found"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/streaks": {
+            "get": {
+                "tags": [
+                    "Streaks"
+                ],
+                "summary": "Menampilkan streak puasa pengguna",
+                "operationId": "547838b20be58f36c3c68cecf8581354",
+                "responses": {
+                    "200": {
+                        "description": "Jumlah streak puasa berhasil diambil",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "streak": {
+                                            "type": "integer",
+                                            "example": 5
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/user/profile/{id}": {
+            "put": {
+                "tags": [
+                    "UserProfile"
+                ],
+                "summary": "Memperbarui profil pengguna",
+                "operationId": "e8487132fc4ab5a7ccffe5ff91024869",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID profil pengguna",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "height",
+                                    "weight",
+                                    "activity_level"
+                                ],
+                                "properties": {
+                                    "height": {
+                                        "type": "integer",
+                                        "example": 170
+                                    },
+                                    "weight": {
+                                        "type": "integer",
+                                        "example": 65
+                                    },
+                                    "activity_level": {
+                                        "type": "string",
+                                        "example": "Active"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Profil berhasil diperbarui",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "user_id": {
+                                            "type": "integer",
+                                            "example": 1
+                                        },
+                                        "height": {
+                                            "type": "integer",
+                                            "example": 170
+                                        },
+                                        "weight": {
+                                            "type": "integer",
+                                            "example": 65
+                                        },
+                                        "activity_level": {
+                                            "type": "string",
+                                            "example": "Active"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Tidak diizinkan memperbarui profil pengguna lain"
+                    },
+                    "404": {
+                        "description": "Profil tidak ditemukan"
+                    },
+                    "422": {
+                        "description": "Validasi gagal"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/user/profile/bmi": {
+            "get": {
+                "tags": [
+                    "UserProfile"
+                ],
+                "summary": "Menghitung kategori BMI berdasarkan profil pengguna",
+                "operationId": "ad94a172c35262c37ee07714dd8fd835",
+                "responses": {
+                    "200": {
+                        "description": "BMI berhasil dihitung",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "bmi": {
+                                            "type": "number",
+                                            "format": "float",
+                                            "example": 22.5
+                                        },
+                                        "category": {
+                                            "type": "string",
+                                            "example": "Normal"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Profil tidak ditemukan"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Authentication",
+            "description": "Endpoints terkait autentikasi pengguna"
+        },
+        {
+            "name": "Calories",
+            "description": "API untuk mengelola catatan kalori pengguna"
+        },
+        {
+            "name": "FastingSchedule",
+            "description": "API untuk mengelola jadwal puasa pengguna"
+        },
+        {
+            "name": "Leaderboard",
+            "description": "API untuk menampilkan papan peringkat berdasarkan jumlah puasa yang diselesaikan"
+        },
+        {
+            "name": "Notifications",
+            "description": "API untuk mengelola notifikasi pengguna"
+        },
+        {
+            "name": "Reports",
+            "description": "API untuk mendapatkan laporan pengguna"
+        },
+        {
+            "name": "Streaks",
+            "description": "API untuk mendapatkan streak puasa pengguna"
+        },
+        {
+            "name": "UserProfile",
+            "description": "API untuk mengelola profil pengguna"
+        }
+    ]
+}
