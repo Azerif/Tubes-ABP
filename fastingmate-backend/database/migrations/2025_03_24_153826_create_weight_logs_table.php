@@ -9,23 +9,22 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-    public function up()
+    public function up(): void
     {
-        Schema::create('calorie_logs', function (Blueprint $table) {
+        Schema::create('weight_logs', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->string('type'); // 'food' atau 'activity'
-            $table->string('description');
-            $table->integer('calories');
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
+            $table->float('weight');
+            $table->date('recorded_date');
             $table->timestamps();
         });
     }
-    
+
     /**
      * Reverse the migrations.
      */
     public function down(): void
     {
-        Schema::dropIfExists('calorie_logs');
+        Schema::dropIfExists('weight_logs');
     }
 };

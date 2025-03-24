@@ -3,50 +3,59 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\UserProfile;
 use Illuminate\Support\Facades\Auth;
+use App\Models\FoodLog;
+use App\Models\ActivityLog;
+use App\Models\WeightLog;
 
-/**
- * @OA\Tag(
- *     name="Reports",
- *     description="API untuk mendapatkan laporan pengguna"
- * )
- */
 class ReportController extends Controller
 {
     /**
      * @OA\Get(
-     *     path="/api/reports",
-     *     summary="Menampilkan laporan pengguna",
-     *     tags={"Reports"},
-     *     security={{"bearerAuth":{}}},
-     *     @OA\Response(
-     *         response=200,
-     *         description="Laporan berhasil diambil",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="weight", type="integer", example=70),
-     *             @OA\Property(property="target_weight", type="integer", example=65),
-     *             @OA\Property(property="daily_calories", type="integer", example=1800)
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=404,
-     *         description="Profil pengguna tidak ditemukan",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="message", type="string", example="Profile not found")
-     *         )
-     *     )
+     *      path="/api/report",
+     *      operationId="getUserHealthReport",
+     *      tags={"Report"},
+     *      summary="Menampilkan laporan kesehatan pengguna",
+     *      security={{"bearerAuth":{}}},
+     *      @OA\Response(
+     *          response=200,
+     *          description="Laporan kesehatan berhasil diambil",
+     *          @OA\JsonContent(
+     *              @OA\Property(property="calories_consumed", type="number", format="float", example=2100),
+     *              @OA\Property(property="calories_burned", type="number", format="float", example=500),
+     *              @OA\Property(
+     *                  property="weight_logs",
+     *                  type="array",
+     *                  @OA\Items(
+     *                      @OA\Property(property="id", type="integer", example=1),
+     *                      @OA\Property(property="user_id", type="integer", example=123),
+     *                      @OA\Property(property="weight", type="number", format="float", example=70.5),
+     *                      @OA\Property(property="recorded_date", type="string", format="date", example="2025-03-24"),
+     *                      @OA\Property(property="created_at", type="string", format="date-time", example="2025-03-24T14:00:00Z"),
+     *                      @OA\Property(property="updated_at", type="string", format="date-time", example="2025-03-24T14:00:00Z"),
+     *                  )
+     *              ),
+     *          )
+     *      )
      * )
      */
     public function index()
     {
-        $profile = Auth::user()->profile;
-        if (!$profile) return response()->json(['message' => 'Profile not found'], 404);
+        $userId = Auth::id();
+
+        // Mengambil total konsumsi kalori dari food_logs
+        $totalCaloriesConsumed = FoodLog::where('user_id', $userId)->sum('total_calories');
+
+        // Mengambil total kalori yang terbakar dari activity_logs
+        $totalCaloriesBurned = ActivityLog::where('user_id', $userId)->sum('calories_burned');
+
+        // Mengambil data perubahan berat badan dari weight_logs
+        $weightLogs = WeightLog::where('user_id', $userId)->orderBy('recorded_date', 'desc')->get();
 
         return response()->json([
-            'weight' => $profile->weight,
-            'target_weight' => $profile->target_weight,
-            'daily_calories' => $profile->daily_calories
+            'calories_consumed' => $totalCaloriesConsumed,
+            'calories_burned' => $totalCaloriesBurned,
+            'weight_logs' => $weightLogs,
         ]);
     }
 }

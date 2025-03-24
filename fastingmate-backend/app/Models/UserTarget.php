@@ -5,24 +5,26 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Notification extends Model
+class UserTarget extends Model
 {
     use HasFactory;
 
-    protected $table = 'notifications';
+    protected $table = 'user_targets';
 
     protected $fillable = [
         'user_id',
-        'title',
-        'message',
-        'type', // reminder, alert, info, etc.
-        'is_read',
-        'sent_at',
+        'target_weight',
+        'target_daily_calories',
+        'target_protein',
+        'target_carbs',
+        'target_fat',
+        'target_date',
+        'is_achieved',
     ];
 
     protected $casts = [
-        'is_read' => 'boolean',
-        'sent_at' => 'datetime',
+        'target_date' => 'date',
+        'is_achieved' => 'boolean',
     ];
 
     public function user()

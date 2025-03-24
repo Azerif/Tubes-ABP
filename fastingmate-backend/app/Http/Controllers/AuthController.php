@@ -33,10 +33,13 @@ class AuthController extends Controller
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
-     *             required={"name","email","password"},
+     *             required={"name","email","password","height","weight","activity_level"},
      *             @OA\Property(property="name", type="string", example="John Doe"),
      *             @OA\Property(property="email", type="string", format="email", example="john@example.com"),
-     *             @OA\Property(property="password", type="string", format="password", example="password123")
+     *             @OA\Property(property="password", type="string", format="password", example="password123"),
+     *             @OA\Property(property="height", type="number", format="float", example=175.5),
+     *             @OA\Property(property="weight", type="number", format="float", example=70.2),
+     *             @OA\Property(property="activity_level", type="string", example="moderate")
      *         )
      *     ),
      *     @OA\Response(response=201, description="User registered successfully"),
@@ -46,19 +49,42 @@ class AuthController extends Controller
     public function register(Request $request)
     {
         $request->validate([
-            'name' => 'required',
+            'name' => 'required|string',
             'email' => 'required|email|unique:users',
-            'password' => 'required|min:6'
+            'password' => 'required|min:6',
+            'height' => 'required|numeric',
+            'weight' => 'required|numeric',
+            'activity_level' => 'required|string'
         ]);
+
+        // Menghitung kebutuhan kalori berdasarkan berat, tinggi, dan aktivitas (Contoh kasar)
+        $daily_calorie_needs = ($request->weight * 10) + ($request->height * 6.25) - (5 * 25); 
+        if ($request->activity_level === "high") {
+            $daily_calorie_needs *= 1.55; 
+        } elseif ($request->activity_level === "moderate") {
+            $daily_calorie_needs *= 1.375;
+        } else {
+            $daily_calorie_needs *= 1.2;
+        }
+
+        // Menentukan kategori berat badan (Contoh sederhana)
+        $bmi = $request->weight / (($request->height / 100) ** 2);
+        $weight_category = $bmi < 18.5 ? 'underweight' : ($bmi < 25 ? 'normal' : 'overweight');
 
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
-            'password' => Hash::make($request->password)
+            'password' => Hash::make($request->password),
+            'height' => $request->height,
+            'weight' => $request->weight,
+            'activity_level' => $request->activity_level,
+            'daily_calorie_needs' => $daily_calorie_needs,
+            'weight_category' => $weight_category,
+            'total_points' => 0,
+            'current_streak' => 0
         ]);
 
-        // Optionally, create a token for the newly registered user
-        $token = $user->createToken('YourAppName')->plainTextToken;
+        $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
             'message' => 'User registered successfully',
@@ -87,26 +113,23 @@ class AuthController extends Controller
      */
     public function login(Request $request)
     {
-        // Validate incoming request
         $request->validate([
             'email' => 'required|email',
             'password' => 'required|min:6',
         ]);
 
-        $credentials = $request->only('email', 'password');
-
-        if (Auth::attempt($credentials)) {
-            $user = Auth::user();
-            $token = $request->user()->createToken('token')->plainTextToken;
-
-            return response()->json([
-                'message' => 'Login successful',
-                'token' => $token,
-                'user' => $user
-            ], 200);
+        if (!Auth::attempt($request->only('email', 'password'))) {
+            return response()->json(['message' => 'Unauthorized'], 401);
         }
 
-        return response()->json(['message' => 'Unauthorized'], 401);
+        $user = Auth::user();
+        $token = $request->user()->createToken('token')->plainTextToken;
+
+        return response()->json([
+            'message' => 'Login successful',
+            'token' => $token,
+            'user' => $user
+        ], 200);
     }
 
     /**
@@ -122,11 +145,8 @@ class AuthController extends Controller
      */
     public function logout(Request $request)
     {
-        // Menghapus semua token yang terkait dengan pengguna yang sedang login
-        $request->user()->tokens->each(function ($token) {
-            $token->delete();
-        });
+        $request->user()->currentAccessToken()->delete();
     
-        return response()->json(['message' => 'Logged out successfully']);
+        return response()->json(['message' => 'Logged out successfully'], 200);
     }
 }

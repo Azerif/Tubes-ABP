@@ -9,15 +9,17 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-    public function up()
+    public function up(): void
     {
         Schema::create('fasting_schedules', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->date('date'); // Tanggal puasa
-            $table->time('start_time'); // Waktu mulai puasa
-            $table->time('end_time'); // Waktu berbuka
-            $table->boolean('completed')->default(false); // Status selesai/tidak
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
+            $table->string('schedule_type'); // intermittent, alternate-day, dsb.
+            $table->date('schedule_date');
+            $table->time('start_time');
+            $table->time('end_time');
+            $table->integer('duration_hours');
+            $table->boolean('is_completed')->default(false);
             $table->timestamps();
         });
     }

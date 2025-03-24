@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class CalorieLog extends Model
+class ChatbotConversation extends Model
 {
     //
 }

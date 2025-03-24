@@ -27,10 +27,12 @@ class FastingScheduleController extends Controller
      *             type="array",
      *             @OA\Items(
      *                 @OA\Property(property="id", type="integer", example=1),
-     *                 @OA\Property(property="date", type="string", format="date", example="2025-03-21"),
+     *                 @OA\Property(property="schedule_type", type="string", example="intermittent"),
+     *                 @OA\Property(property="schedule_date", type="string", format="date", example="2025-03-21"),
      *                 @OA\Property(property="start_time", type="string", format="time", example="04:30"),
      *                 @OA\Property(property="end_time", type="string", format="time", example="18:30"),
-     *                 @OA\Property(property="completed", type="boolean", example=false)
+     *                 @OA\Property(property="duration_hours", type="integer", example=14),
+     *                 @OA\Property(property="is_completed", type="boolean", example=false)
      *             )
      *         )
      *     )
@@ -38,7 +40,7 @@ class FastingScheduleController extends Controller
      */
     public function index()
     {
-        $fastingSchedules = Auth::user()->fastingSchedules;
+        $fastingSchedules = FastingSchedule::where('user_id', Auth::id())->get();
         return response()->json($fastingSchedules);
     }
 
@@ -51,43 +53,39 @@ class FastingScheduleController extends Controller
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
-     *             required={"date", "start_time", "end_time"},
-     *             @OA\Property(property="date", type="string", format="date", example="2025-03-21"),
+     *             required={"schedule_type", "schedule_date", "start_time", "end_time"},
+     *             @OA\Property(property="schedule_type", type="string", example="intermittent"),
+     *             @OA\Property(property="schedule_date", type="string", format="date", example="2025-03-21"),
      *             @OA\Property(property="start_time", type="string", format="time", example="04:30"),
      *             @OA\Property(property="end_time", type="string", format="time", example="18:30")
      *         )
      *     ),
-     *     @OA\Response(
-     *         response=201,
-     *         description="Jadwal puasa berhasil dibuat",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="id", type="integer", example=1),
-     *             @OA\Property(property="user_id", type="integer", example=5),
-     *             @OA\Property(property="date", type="string", format="date", example="2025-03-21"),
-     *             @OA\Property(property="start_time", type="string", format="time", example="04:30"),
-     *             @OA\Property(property="end_time", type="string", format="time", example="18:30"),
-     *             @OA\Property(property="completed", type="boolean", example=false)
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=422,
-     *         description="Validasi gagal"
-     *     )
+     *     @OA\Response(response=201, description="Jadwal puasa berhasil dibuat"),
+     *     @OA\Response(response=422, description="Validasi gagal")
      * )
      */
     public function store(Request $request)
     {
         $request->validate([
-            'date' => 'required|date',
+            'schedule_type' => 'required|string',
+            'schedule_date' => 'required|date',
             'start_time' => 'required',
-            'end_time' => 'required'
+            'end_time' => 'required',
         ]);
+
+        // Menghitung durasi puasa
+        $start = strtotime($request->start_time);
+        $end = strtotime($request->end_time);
+        $duration_hours = ($end - $start) / 3600;
 
         $schedule = FastingSchedule::create([
             'user_id' => Auth::id(),
-            'date' => $request->date,
+            'schedule_type' => $request->schedule_type,
+            'schedule_date' => $request->schedule_date,
             'start_time' => $request->start_time,
-            'end_time' => $request->end_time
+            'end_time' => $request->end_time,
+            'duration_hours' => $duration_hours,
+            'is_completed' => false
         ]);
 
         return response()->json($schedule, 201);
@@ -103,20 +101,10 @@ class FastingScheduleController extends Controller
      *         name="id",
      *         in="path",
      *         required=true,
-     *         description="ID jadwal puasa",
      *         @OA\Schema(type="integer", example=1)
      *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Jadwal puasa berhasil diperbarui",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="message", type="string", example="Fasting marked as completed")
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=404,
-     *         description="Jadwal puasa tidak ditemukan"
-     *     )
+     *     @OA\Response(response=200, description="Jadwal puasa berhasil diperbarui"),
+     *     @OA\Response(response=404, description="Jadwal puasa tidak ditemukan")
      * )
      */
     public function updateStatus($id)
@@ -126,7 +114,34 @@ class FastingScheduleController extends Controller
             return response()->json(['message' => 'Schedule not found'], 404);
         }
 
-        $schedule->update(['completed' => true]);
+        $schedule->update(['is_completed' => true]);
         return response()->json(['message' => 'Fasting marked as completed']);
+    }
+
+    /**
+     * @OA\Delete(
+     *     path="/api/fasting-schedules/{id}",
+     *     summary="Menghapus jadwal puasa",
+     *     tags={"FastingSchedule"},
+     *     security={{ "bearerAuth":{} }},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer", example=1)
+     *     ),
+     *     @OA\Response(response=200, description="Jadwal puasa berhasil dihapus"),
+     *     @OA\Response(response=404, description="Jadwal puasa tidak ditemukan")
+     * )
+     */
+    public function destroy($id)
+    {
+        $schedule = FastingSchedule::where('id', $id)->where('user_id', Auth::id())->first();
+        if (!$schedule) {
+            return response()->json(['message' => 'Schedule not found'], 404);
+        }
+
+        $schedule->delete();
+        return response()->json(['message' => 'Fasting schedule deleted successfully']);
     }
 }

@@ -3,48 +3,54 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\FastingSchedule;
 use Illuminate\Support\Facades\Auth;
+use App\Models\FastingSchedule;
 
 /**
  * @OA\Tag(
- *     name="Streaks",
- *     description="API untuk mendapatkan streak puasa pengguna"
+ *     name="Streak",
+ *     description="API untuk menghitung streak puasa pengguna"
  * )
  */
 class StreakController extends Controller
 {
     /**
      * @OA\Get(
-     *     path="/api/streaks",
-     *     summary="Menampilkan streak puasa pengguna",
-     *     tags={"Streaks"},
-     *     security={{"bearerAuth":{}}},
+     *     path="/api/streak",
+     *     summary="Menghitung streak puasa pengguna",
+     *     tags={"Streak"},
+     *     security={{ "bearerAuth":{} }},
      *     @OA\Response(
      *         response=200,
-     *         description="Jumlah streak puasa berhasil diambil",
+     *         description="Streak puasa pengguna berhasil dihitung",
      *         @OA\JsonContent(
-     *             @OA\Property(property="streak", type="integer", example=5)
+     *             @OA\Property(property="current_streak", type="integer", example=5)
      *         )
      *     )
      * )
      */
     public function index()
     {
-        $streak = Auth::MyUserModel()->fastingSchedules()->where('completed', true)->orderByDesc('date')->pluck('date');
+        $userId = Auth::id();
+        $streak = 0;
+        $previousDate = null;
 
-        $currentStreak = 0;
-        $yesterday = now()->subDay();
+        $fastingLogs = FastingSchedule::where('user_id', $userId)
+            ->where('is_completed', true)
+            ->orderBy('schedule_date', 'desc')
+            ->get();
 
-        foreach ($streak as $date) {
-            if ($date == $yesterday->toDateString()) {
-                $currentStreak++;
-                $yesterday = $yesterday->subDay();
+        foreach ($fastingLogs as $log) {
+            if ($previousDate === null) {
+                $streak = 1;
+            } elseif (strtotime($previousDate) - strtotime($log->schedule_date) == 86400) {
+                $streak++;
             } else {
                 break;
             }
+            $previousDate = $log->schedule_date;
         }
 
-        return response()->json(['streak' => $currentStreak]);
+        return response()->json(['current_streak' => $streak]);
     }
 }

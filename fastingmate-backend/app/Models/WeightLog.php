@@ -5,13 +5,20 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class UserProfile extends Model
+class WeightLog extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['user_id', 'height', 'weight', 'activity_level'];
+    protected $table = 'weight_logs';
 
-    public function user() {
+    protected $fillable = [
+        'user_id',
+        'weight',
+        'recorded_date',
+    ];
+
+    public function user()
+    {
         return $this->belongsTo(User::class);
     }
 }
