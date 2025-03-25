@@ -15,6 +15,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController passwordController = TextEditingController();
   final AuthApi authApi = AuthApi();
   bool isLoading = false;
+  bool _isObscured = true; // Variabel untuk mengontrol visibilitas password
 
 void login() async {
   setState(() => isLoading = true);
@@ -93,13 +94,25 @@ void login() async {
                         // Password Input
                         TextField(
                           controller: passwordController,
-                          obscureText: true,
+                          obscureText: _isObscured, // Gunakan variabel untuk mengontrol visibilitas password
                           decoration: InputDecoration(
                             labelText: "Password",
                             border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                             prefixIcon: const Icon(Icons.lock, color: Color(0xFF1976D2)),
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                _isObscured ? Icons.visibility_off : Icons.visibility,
+                                color: Color(0xFF1976D2),
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  _isObscured = !_isObscured;
+                                });
+                              },
+                            ),
                           ),
                         ),
+
                         const SizedBox(height: 20),
 
                         // Login Button

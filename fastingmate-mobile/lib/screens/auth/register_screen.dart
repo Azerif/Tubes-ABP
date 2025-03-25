@@ -15,6 +15,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController passwordController = TextEditingController();
   final AuthApi authApi = AuthApi();
   bool isLoading = false;
+  bool _isObscured = true; 
 
   void register() async {
     setState(() => isLoading = true);
@@ -112,13 +113,24 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         const SizedBox(height: 12),
 
                         // Input Password
-                        TextField(
+                         TextField(
                           controller: passwordController,
-                          obscureText: true,
+                          obscureText: _isObscured, // Gunakan variabel untuk mengontrol visibilitas password
                           decoration: InputDecoration(
                             labelText: "Password",
                             border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                             prefixIcon: const Icon(Icons.lock, color: Color(0xFF1976D2)),
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                _isObscured ? Icons.visibility_off : Icons.visibility,
+                                color: Color(0xFF1976D2),
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  _isObscured = !_isObscured;
+                                });
+                              },
+                            ),
                           ),
                         ),
                         const SizedBox(height: 20),
