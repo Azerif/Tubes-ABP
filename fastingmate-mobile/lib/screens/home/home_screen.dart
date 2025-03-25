@@ -5,12 +5,12 @@ import '../calories/calorie_log_screen.dart';
 import '../profile/user_profile_screen.dart';
 import '../notifications/notification_screen.dart';
 import '../leaderboard/leaderboard_screen.dart';
-// import '../reports/report_screen.dart';
-// import '../streaks/streak_screen.dart';
 import '../auth/login_screen.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  final bool showWelcomePopup; // Parameter untuk menampilkan popup
+
+  const HomeScreen({super.key, this.showWelcomePopup = false});
 
   @override
   _HomeScreenState createState() => _HomeScreenState();
@@ -18,15 +18,56 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final ApiService apiService = ApiService();
-  String username = "Pengguna";
+  String username = "@name";
   double bmi = 0;
   String category = "";
   bool isLoading = true;
+
+  int _currentIndex = 0;
+
+  final List<Widget> _screens = [
+    HomeContentScreen(), // Konten utama dashboard
+    FastingScheduleScreen(), // Jadwal Puasa
+    LeaderboardScreen(), // Leaderboard
+    UserProfileScreen(), // Profil Pengguna
+  ];
 
   @override
   void initState() {
     super.initState();
     fetchUserProfile();
+
+    // Tampilkan popup jika showWelcomePopup bernilai true
+    if (widget.showWelcomePopup) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              title: const Text(
+                "Login Berhasil",
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              content: const Text(
+                "Selamat datang di FastingMate! Semoga harimu menyenangkan 😊",
+                style: TextStyle(fontSize: 16),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context); // Tutup dialog
+                  },
+                  child: const Text(
+                    "OK",
+                    style: TextStyle(color: Colors.blue),
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      });
+    }
   }
 
   Future<void> fetchUserProfile() async {
@@ -59,132 +100,81 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
-          : Padding(
+          : _screens[_currentIndex], // Menampilkan layar sesuai indeks
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _currentIndex,
+        onTap: (index) {
+          setState(() {
+            _currentIndex = index;
+          });
+        },
+        type: BottomNavigationBarType.fixed,
+        selectedItemColor: Colors.orange,
+        unselectedItemColor: Colors.grey,
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.dashboard),
+            label: "Dashboard",
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.schedule),
+            label: "Puasa",
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.leaderboard),
+            label: "Leaderboard",
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person),
+            label: "Profil",
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class HomeContentScreen extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Greeting
+          const Text(
+            "Selamat Datang, User! 👋",
+            style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            "Pantau progres puasamu dan tetap semangat!",
+            style: TextStyle(fontSize: 16, color: Colors.grey),
+          ),
+          const SizedBox(height: 20),
+
+          // BMI & Status Kesehatan
+          Card(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            elevation: 4,
+            child: Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Greeting
+                children: const [
                   Text(
-                    "Selamat Datang, $username! 👋",
-                    style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                    "Status Kesehatan",
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    "Pantau progres puasamu dan tetap semangat!",
-                    style: TextStyle(fontSize: 16, color: Colors.grey),
-                  ),
-                  const SizedBox(height: 20),
-
-                  // BMI & Status Kesehatan
-                  Card(
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    elevation: 4,
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            "Status Kesehatan",
-                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                          ),
-                          const SizedBox(height: 8),
-                          Text("BMI: ${bmi.toStringAsFixed(1)}"),
-                          Text("Kategori: $category"),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 20),
-
-                  // Tombol Navigasi
-                  Expanded(
-                    child: GridView.count(
-                      crossAxisCount: 2,
-                      crossAxisSpacing: 16,
-                      mainAxisSpacing: 16,
-                      children: [
-                        _buildDashboardButton(
-                          icon: Icons.schedule,
-                          label: "Jadwal Puasa",
-                          onTap: () => Navigator.push(
-                              context, MaterialPageRoute(builder: (context) => const FastingScheduleScreen())),
-                        ),
-                        _buildDashboardButton(
-                          icon: Icons.fastfood,
-                          label: "Catatan Kalori",
-                          onTap: () => Navigator.push(
-                              context, MaterialPageRoute(builder: (context) => const CalorieLogScreen())),
-                        ),
-                        _buildDashboardButton(
-                          icon: Icons.leaderboard,
-                          label: "Leaderboard",
-                          onTap: () => Navigator.push(
-                              context, MaterialPageRoute(builder: (context) => const LeaderboardScreen())),
-                        ),
-                        _buildDashboardButton(
-                          icon: Icons.notifications,
-                          label: "Notifikasi",
-                          onTap: () => Navigator.push(
-                              context, MaterialPageRoute(builder: (context) => const NotificationScreen())),
-                        ),
-                        // _buildDashboardButton(
-                        //   icon: Icons.bar_chart,
-                        //   label: "Laporan",
-                        //   onTap: () => Navigator.push(
-                        //       context, MaterialPageRoute(builder: (context) => const ReportScreen())),
-                        // ),
-                        // _buildDashboardButton(
-                        //   icon: Icons.fireplace,
-                        //   label: "Streak Puasa",
-                        //   onTap: () => Navigator.push(
-                        //       context, MaterialPageRoute(builder: (context) => const StreakScreen())),
-                        // ),
-                        _buildDashboardButton(
-                          icon: Icons.person,
-                          label: "Profil",
-                          onTap: () => Navigator.push(
-                              context, MaterialPageRoute(builder: (context) => const UserProfileScreen())),
-                        ),
-                        _buildDashboardButton(
-                          icon: Icons.logout,
-                          label: "Logout",
-                          onTap: logout,
-                        ),
-                      ],
-                    ),
-                  ),
+                  SizedBox(height: 8),
+                  Text("BMI: 22.5"),
+                  Text("Kategori: Normal"),
                 ],
               ),
             ),
-    );
-  }
-
-  Widget _buildDashboardButton({required IconData icon, required String label, required VoidCallback onTap}) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black12,
-              blurRadius: 6,
-              offset: Offset(0, 3),
-            ),
-          ],
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 40, color: Colors.blue),
-            const SizedBox(height: 8),
-            Text(label, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

@@ -17,26 +17,43 @@ class _LoginScreenState extends State<LoginScreen> {
   bool isLoading = false;
   bool _isObscured = true; // Variabel untuk mengontrol visibilitas password
 
-void login() async {
-  setState(() => isLoading = true);
-  bool success = await authApi.login(emailController.text, passwordController.text);
+  void login() async {
+    setState(() => isLoading = true);
+    bool success = await authApi.login(emailController.text, passwordController.text);
 
-  if (success) {
-    print("Login Success!");
+    if (success) {
+      print("Login Success!");
 
-    // Navigasi ke HomeScreen setelah login sukses
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => const HomeScreen()),
-    );
-  } else {
-    print("Login Failed");
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Login gagal, periksa kembali email dan password")),
-    );
+      // Tampilkan popup login berhasil
+      showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: const Text("Login Berhasil"),
+            content: const Text("Selamat datang di FastingMate!"),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context); // Tutup dialog
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => const HomeScreen()),
+                  ); // Navigasi ke HomeScreen
+                },
+                child: const Text("OK"),
+              ),
+            ],
+          );
+        },
+      );
+    } else {
+      print("Login Failed");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Login gagal, periksa kembali email dan password")),
+      );
+    }
+    setState(() => isLoading = false);
   }
-  setState(() => isLoading = false);
-}
 
   @override
   Widget build(BuildContext context) {
@@ -119,7 +136,7 @@ void login() async {
                         ElevatedButton(
                           onPressed: isLoading ? null : login,
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Color(0xFF1976D2),
+                            backgroundColor: const Color(0xFF1976D2),
                             padding: const EdgeInsets.symmetric(vertical: 14),
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                           ),

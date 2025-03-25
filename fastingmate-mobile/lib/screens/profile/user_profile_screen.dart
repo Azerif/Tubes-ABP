@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/api/api_service.dart';
+import '../auth/login_screen.dart';
 
 class UserProfileScreen extends StatefulWidget {
   const UserProfileScreen({super.key});
@@ -57,8 +58,16 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              TextField(controller: heightController, decoration: const InputDecoration(labelText: "Tinggi (cm)"), keyboardType: TextInputType.number),
-              TextField(controller: weightController, decoration: const InputDecoration(labelText: "Berat (kg)"), keyboardType: TextInputType.number),
+              TextField(
+                controller: heightController,
+                decoration: const InputDecoration(labelText: "Tinggi (cm)"),
+                keyboardType: TextInputType.number,
+              ),
+              TextField(
+                controller: weightController,
+                decoration: const InputDecoration(labelText: "Berat (kg)"),
+                keyboardType: TextInputType.number,
+              ),
               DropdownButtonFormField<String>(
                 value: activityLevel,
                 onChanged: (value) => setState(() => activityLevel = value!),
@@ -72,6 +81,34 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           actions: [
             TextButton(onPressed: () => Navigator.pop(context), child: const Text("Batal")),
             ElevatedButton(onPressed: saveProfile, child: const Text("Simpan")),
+          ],
+        );
+      },
+    );
+  }
+
+  void logout() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text("Konfirmasi Logout"),
+          content: const Text("Apakah Anda yakin ingin keluar?"),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context), // Tutup dialog
+              child: const Text("Batal"),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context); // Tutup dialog
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => const LoginScreen()),
+                ); // Navigasi ke layar login
+              },
+              child: const Text("Logout"),
+            ),
           ],
         );
       },
@@ -104,6 +141,17 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             ElevatedButton(
               onPressed: showEditProfileDialog,
               child: const Text("Edit Profil"),
+            ),
+            const Spacer(), // Mendorong tombol logout ke bawah
+            ElevatedButton.icon(
+              onPressed: logout,
+              icon: const Icon(Icons.logout),
+              label: const Text("Logout"),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+                minimumSize: const Size(double.infinity, 50), // Tombol penuh lebar
+              ),
             ),
           ],
         ),
