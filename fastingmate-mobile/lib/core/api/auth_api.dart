@@ -34,31 +34,22 @@ class AuthApi {
     }
   }
 
-  // **✅ Login User**
-  Future<bool> login(String email, String password) async {
+   Future<Map<String, dynamic>?> login(String email, String password) async {
     try {
-      Response response = await _dioClient.dio.post(
-        '/login',
-        data: {
-          "email": email,
-          "password": password,
-        },
-        options: Options(headers: {
-          "Accept": "application/json", // ✅ Mencegah redirect ke HTML jika terjadi kesalahan
-        }),
-      );
+      Response response = await _dioClient.dio.post('/login', data: {
+        "email": email,
+        "password": password,
+      });
 
-      // **Periksa apakah API mengembalikan token**
-      if (response.statusCode == 200 && response.data is Map && response.data.containsKey('token')) {
-        await SharedPrefs.saveToken(response.data['token']);
-        return true; // **Berhasil login**
+      if (response.statusCode == 200 && response.data.containsKey('token')) {
+        await SharedPrefs.saveToken(response.data['token']); // Simpan token
+        return response.data; // ✅ Kembalikan data user
       }
 
-      print("Login failed: ${response.data}");
-      return false; // **Gagal login**
-    } on DioException catch (e) {
-      print("❌ Login error: ${e.response?.statusCode} - ${e.response?.data}");
-      return false;
+      return null; // Jika tidak ada token, return null
+    } catch (e) {
+      print("Login error: $e");
+      return null;
     }
   }
 

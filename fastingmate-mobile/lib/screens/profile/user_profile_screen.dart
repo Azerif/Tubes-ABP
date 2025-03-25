@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import '../../core/api/api_service.dart';
-import '../auth/login_screen.dart';
 
 class UserProfileScreen extends StatefulWidget {
-  const UserProfileScreen({super.key});
+  final int userId;
+
+  const UserProfileScreen({super.key, required this.userId});
 
   @override
   _UserProfileScreenState createState() => _UserProfileScreenState();
@@ -11,149 +12,115 @@ class UserProfileScreen extends StatefulWidget {
 
 class _UserProfileScreenState extends State<UserProfileScreen> {
   final ApiService apiService = ApiService();
+
+  bool isLoading = true;
+  bool isEditing = false;
+  Map<String, dynamic>? userData;
+  String weightCategory = "";
+
+  final TextEditingController nameController = TextEditingController();
   final TextEditingController heightController = TextEditingController();
   final TextEditingController weightController = TextEditingController();
-  String activityLevel = "Sedentary";
-  double? bmi;
-  String? category;
-  bool isLoading = true;
+  final TextEditingController activityLevelController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    fetchBMI();
+    fetchUserData();
   }
 
-  Future<void> fetchBMI() async {
+  Future<void> fetchUserData() async {
     try {
-      final data = await apiService.getUserBMI();
+      final data = await apiService.getUserById(widget.userId);
+      final category = await apiService.getUserWeightCategory(widget.userId);
       setState(() {
-        bmi = data["bmi"];
-        category = data["category"];
+        userData = data;
+        weightCategory = category['weight_category'];
+        nameController.text = data['name'];
+        heightController.text = data['height'].toString();
+        weightController.text = data['weight'].toString();
+        activityLevelController.text = data['activity_level'];
         isLoading = false;
       });
     } catch (e) {
-      print("Error fetching BMI: $e");
+      print(e);
       setState(() => isLoading = false);
     }
   }
 
-  void saveProfile() async {
-    if (heightController.text.isEmpty || weightController.text.isEmpty) return;
+Future<void> updateUserProfile() async {
+  setState(() => isLoading = true);
+  try {
+    final data = {
+      'name': nameController.text,
+      'height': double.parse(heightController.text),
+      'weight': double.parse(weightController.text),
+      'activity_level': activityLevelController.text,
+    };
+    print("Data yang dikirim ke server: $data");
 
-    int height = int.tryParse(heightController.text) ?? 0;
-    int weight = int.tryParse(weightController.text) ?? 0;
-    await apiService.updateUserProfile(height, weight, activityLevel);
-
-    fetchBMI(); // Refresh BMI setelah menyimpan profil
-    Navigator.pop(context); // Tutup modal input
-  }
-
-  void showEditProfileDialog() {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text("Edit Profil"),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: heightController,
-                decoration: const InputDecoration(labelText: "Tinggi (cm)"),
-                keyboardType: TextInputType.number,
-              ),
-              TextField(
-                controller: weightController,
-                decoration: const InputDecoration(labelText: "Berat (kg)"),
-                keyboardType: TextInputType.number,
-              ),
-              DropdownButtonFormField<String>(
-                value: activityLevel,
-                onChanged: (value) => setState(() => activityLevel = value!),
-                items: ["Sedentary", "Lightly Active", "Active", "Very Active"]
-                    .map((level) => DropdownMenuItem(value: level, child: Text(level)))
-                    .toList(),
-                decoration: const InputDecoration(labelText: "Tingkat Aktivitas"),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(onPressed: () => Navigator.pop(context), child: const Text("Batal")),
-            ElevatedButton(onPressed: saveProfile, child: const Text("Simpan")),
-          ],
-        );
-      },
+    await apiService.updateUserById(widget.userId, data);
+    fetchUserData();
+    setState(() => isEditing = false);
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Profil berhasil diperbarui!")),
     );
-  }
-
-  void logout() {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text("Konfirmasi Logout"),
-          content: const Text("Apakah Anda yakin ingin keluar?"),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context), // Tutup dialog
-              child: const Text("Batal"),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pop(context); // Tutup dialog
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (context) => const LoginScreen()),
-                ); // Navigasi ke layar login
-              },
-              child: const Text("Logout"),
-            ),
-          ],
-        );
-      },
+  } catch (e) {
+    print("Error updating profile: $e");
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Gagal memperbarui profil")),
     );
+  } finally {
+    setState(() => isLoading = false);
   }
+}
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text("Profil Pengguna")),
-      floatingActionButton: FloatingActionButton(
-        onPressed: showEditProfileDialog,
-        child: const Icon(Icons.edit),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text("BMI: ${bmi ?? 'N/A'}", style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                      Text("Kategori: ${category ?? 'N/A'}", style: const TextStyle(fontSize: 16)),
-                    ],
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildProfileField("Nama", nameController, isEditing),
+                  _buildProfileField("Tinggi (cm)", heightController, isEditing, isNumeric: true),
+                  _buildProfileField("Berat (kg)", weightController, isEditing, isNumeric: true),
+                  _buildProfileField("Level Aktivitas", activityLevelController, isEditing),
+                  const SizedBox(height: 10),
+                  Text(
+                    "Kategori Berat Badan: $weightCategory",
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: showEditProfileDialog,
-              child: const Text("Edit Profil"),
-            ),
-            const Spacer(), // Mendorong tombol logout ke bawah
-            ElevatedButton.icon(
-              onPressed: logout,
-              icon: const Icon(Icons.logout),
-              label: const Text("Logout"),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
-                foregroundColor: Colors.white,
-                minimumSize: const Size(double.infinity, 50), // Tombol penuh lebar
+                  const SizedBox(height: 20),
+                  isEditing
+                      ? ElevatedButton(
+                          onPressed: updateUserProfile,
+                          child: const Text("Simpan Perubahan"),
+                        )
+                      : ElevatedButton(
+                          onPressed: () => setState(() => isEditing = true),
+                          child: const Text("Edit Profil"),
+                        ),
+                ],
               ),
             ),
-          ],
+    );
+  }
+
+  Widget _buildProfileField(String label, TextEditingController controller, bool editable, {bool isNumeric = false}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: TextField(
+        controller: controller,
+        enabled: editable,
+        keyboardType: isNumeric ? TextInputType.number : TextInputType.text,
+        decoration: InputDecoration(
+          labelText: label,
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
         ),
       ),
     );
