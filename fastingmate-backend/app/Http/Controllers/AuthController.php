@@ -47,51 +47,56 @@ class AuthController extends Controller
      * )
      */
     public function register(Request $request)
-    {
-        $request->validate([
-            'name' => 'required|string',
-            'email' => 'required|email|unique:users',
-            'password' => 'required|min:6',
-            'height' => 'required|numeric',
-            'weight' => 'required|numeric',
-            'activity_level' => 'required|string'
-        ]);
+{
+    $request->validate([
+        'name' => 'required|string',
+        'email' => 'required|email|unique:users',
+        'password' => 'required|min:6',
+        'height' => 'nullable|numeric',
+        'weight' => 'nullable|numeric',
+        'activity_level' => 'nullable|string|in:low,moderate,high'
+    ]);
 
-        // Menghitung kebutuhan kalori berdasarkan berat, tinggi, dan aktivitas (Contoh kasar)
-        $daily_calorie_needs = ($request->weight * 10) + ($request->height * 6.25) - (5 * 25); 
-        if ($request->activity_level === "high") {
-            $daily_calorie_needs *= 1.55; 
-        } elseif ($request->activity_level === "moderate") {
-            $daily_calorie_needs *= 1.375;
-        } else {
-            $daily_calorie_needs *= 1.2;
-        }
+    // Set default values jika tidak diisi
+    $height = $request->height ?? 170; // Default tinggi 170 cm
+    $weight = $request->weight ?? 70;  // Default berat 70 kg
+    $activity_level = $request->activity_level ?? 'moderate';
 
-        // Menentukan kategori berat badan (Contoh sederhana)
-        $bmi = $request->weight / (($request->height / 100) ** 2);
-        $weight_category = $bmi < 18.5 ? 'underweight' : ($bmi < 25 ? 'normal' : 'overweight');
-
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'height' => $request->height,
-            'weight' => $request->weight,
-            'activity_level' => $request->activity_level,
-            'daily_calorie_needs' => $daily_calorie_needs,
-            'weight_category' => $weight_category,
-            'total_points' => 0,
-            'current_streak' => 0
-        ]);
-
-        $token = $user->createToken('auth_token')->plainTextToken;
-
-        return response()->json([
-            'message' => 'User registered successfully',
-            'user' => $user,
-            'token' => $token
-        ], 201);
+    // Hitung kebutuhan kalori hanya jika tinggi & berat diberikan
+    $daily_calorie_needs = ($weight * 10) + ($height * 6.25) - (5 * 25); 
+    if ($activity_level === "high") {
+        $daily_calorie_needs *= 1.55; 
+    } elseif ($activity_level === "moderate") {
+        $daily_calorie_needs *= 1.375;
+    } else {
+        $daily_calorie_needs *= 1.2;
     }
+
+    // Hitung kategori berat badan (jika tinggi & berat tersedia)
+    $bmi = $weight / (($height / 100) ** 2);
+    $weight_category = $bmi < 18.5 ? 'underweight' : ($bmi < 25 ? 'normal' : 'overweight');
+
+    $user = User::create([
+        'name' => $request->name,
+        'email' => $request->email,
+        'password' => Hash::make($request->password),
+        'height' => $height,
+        'weight' => $weight,
+        'activity_level' => $activity_level,
+        'daily_calorie_needs' => $daily_calorie_needs,
+        'weight_category' => $weight_category,
+        'total_points' => 0,
+        'current_streak' => 0
+    ]);
+
+    $token = $user->createToken('auth_token')->plainTextToken;
+
+    return response()->json([
+        'message' => 'User registered successfully',
+        'user' => $user,
+        'token' => $token
+    ], 201);
+}
 
     /**
      * @OA\Post(
