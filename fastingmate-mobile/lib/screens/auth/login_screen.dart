@@ -15,43 +15,56 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController passwordController = TextEditingController();
   final AuthApi authApi = AuthApi();
   bool isLoading = false;
-  bool _isObscured = true; // Variabel untuk mengontrol visibilitas password
+  bool _isObscured = true;
 
   void login() async {
     setState(() => isLoading = true);
-    bool success = await authApi.login(emailController.text, passwordController.text);
 
-    if (success) {
-      print("Login Success!");
+    try {
+      final response = await authApi.login(emailController.text, passwordController.text);
 
-      // Tampilkan popup login berhasil
-      showDialog(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            title: const Text("Login Berhasil"),
-            content: const Text("Selamat datang di FastingMate!"),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context); // Tutup dialog
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) => const HomeScreen()),
-                  ); // Navigasi ke HomeScreen
-                },
-                child: const Text("OK"),
-              ),
-            ],
-          );
-        },
-      );
-    } else {
-      print("Login Failed");
+      if (response != null && response.containsKey("token")) {
+        print("Login Success!");
+
+        int userId = response["user"]["id"]; // Ambil userId dari API
+
+        // Tampilkan popup login berhasil
+        showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              title: const Text("Login Berhasil"),
+              content: const Text("Selamat datang di FastingMate!"),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context); // Tutup dialog
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => HomeScreen(userId: userId), // ✅ Kirim userId
+                      ),
+                    );
+                  },
+                  child: const Text("OK"),
+                ),
+              ],
+            );
+          },
+        );
+      } else {
+        print("Login Failed");
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Login gagal, periksa kembali email dan password")),
+        );
+      }
+    } catch (e) {
+      print("Login error: $e");
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Login gagal, periksa kembali email dan password")),
+        const SnackBar(content: Text("Terjadi kesalahan, coba lagi nanti")),
       );
     }
+
     setState(() => isLoading = false);
   }
 
@@ -60,18 +73,15 @@ class _LoginScreenState extends State<LoginScreen> {
     return Scaffold(
       body: Stack(
         children: [
-          // Background Gradient
           Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
-                colors: [Color(0xFF2196F3), Color(0xFF1976D2)], // Warna biru gradasi
+                colors: [Color(0xFF2196F3), Color(0xFF1976D2)],
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
               ),
             ),
           ),
-
-          // Login Form
           Center(
             child: SingleChildScrollView(
               child: Padding(
@@ -85,7 +95,6 @@ class _LoginScreenState extends State<LoginScreen> {
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        // App Name
                         const Text(
                           "FastingMate",
                           textAlign: TextAlign.center,
@@ -96,10 +105,9 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
                         const SizedBox(height: 20),
-
-                        // Email Input
                         TextField(
                           controller: emailController,
+                          keyboardType: TextInputType.emailAddress,
                           decoration: InputDecoration(
                             labelText: "Email",
                             border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
@@ -107,11 +115,9 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
                         const SizedBox(height: 12),
-
-                        // Password Input
                         TextField(
                           controller: passwordController,
-                          obscureText: _isObscured, // Gunakan variabel untuk mengontrol visibilitas password
+                          obscureText: _isObscured,
                           decoration: InputDecoration(
                             labelText: "Password",
                             border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
@@ -119,20 +125,13 @@ class _LoginScreenState extends State<LoginScreen> {
                             suffixIcon: IconButton(
                               icon: Icon(
                                 _isObscured ? Icons.visibility_off : Icons.visibility,
-                                color: Color(0xFF1976D2),
+                                color: const Color(0xFF1976D2),
                               ),
-                              onPressed: () {
-                                setState(() {
-                                  _isObscured = !_isObscured;
-                                });
-                              },
+                              onPressed: () => setState(() => _isObscured = !_isObscured),
                             ),
                           ),
                         ),
-
                         const SizedBox(height: 20),
-
-                        // Login Button
                         ElevatedButton(
                           onPressed: isLoading ? null : login,
                           style: ElevatedButton.styleFrom(
@@ -144,8 +143,6 @@ class _LoginScreenState extends State<LoginScreen> {
                               ? const CircularProgressIndicator(color: Colors.white)
                               : const Text("Login", style: TextStyle(fontSize: 16, color: Colors.white)),
                         ),
-
-                        // Register Navigation
                         TextButton(
                           onPressed: () {
                             Navigator.push(
